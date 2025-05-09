@@ -32,9 +32,9 @@ var line lowLine  = na
 if isHighBreak
     if not na(highLine)
         line.delete(highLine)
-    highLine := line.new(x1=bar_index, y1=yearHigh, x2=bar_index + 1, y2=yearHigh, color=color.red, extend=extend.right)
+    highLine := line.new(x1=bar_index, y1=yearHigh, x2=bar_index + 1, y2=yearHigh, color=color.green, extend=extend.right)
 
 if isLowBreak
     if not na(lowLine)
         line.delete(lowLine)
-    lowLine := line.new(x1=bar_index, y1=yearLow, x2=bar_index + 1, y2=yearLow, color=color.green, extend=extend.right)
+    lowLine := line.new(x1=bar_index, y1=yearLow, x2=bar_index + 1, y2=yearLow, color=color.red, extend=extend.right)

@@ -1,0 +1,31 @@
+//@version=5
+indicator("Daily High/Low Breakout Lines", overlay=true)
+
+// === パラメーター ===
+past_days = 5
+
+// === 日足データ取得 ===
+dayHigh = request.security(syminfo.tickerid, "1D", high)
+dayLow  = request.security(syminfo.tickerid, "1D", low)
+
+// === 日足の最安値・最高値 (過去5本分) ===
+pastHigh = request.security(syminfo.tickerid, "1D", ta.highest(high, past_days))
+pastLow  = request.security(syminfo.tickerid, "1D", ta.lowest(low, past_days))
+
+// === 条件：今日の高値が過去高値を超えたら、安値が割れたら
+isHighBreak = dayHigh > pastHigh[1]
+isLowBreak  = dayLow < pastLow[1]
+
+// === ライン管理 (破棄 -> 更新)
+var line highLine = na
+var line lowLine  = na
+
+if isHighBreak
+    if not na(highLine)
+        line.delete(highLine)
+    highLine := line.new(x1=bar_index, y1=dayHigh, x2=bar_index + 1, y2=dayHigh, color=color.green, extend=extend.right)
+
+if isLowBreak
+    if not na(lowLine)
+        line.delete(lowLine)
+    lowLine := line.new(x1=bar_index, y1=dayLow, x2=bar_index + 1, y2=dayLow, color=color.red, extend=extend.right)
