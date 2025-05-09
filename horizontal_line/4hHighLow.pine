@@ -1,0 +1,31 @@
+//@version=5
+indicator("240 High/Low Breakout Lines", overlay=true)
+
+// === パラメーター ===
+past_hs = 5
+
+// === 4時間足データ取得 ===
+hHigh = request.security(syminfo.tickerid, "240", high)
+hLow  = request.security(syminfo.tickerid, "240", low)
+
+// === 4時間足の最安値・最高値 (過去5本分) ===
+pastHigh = request.security(syminfo.tickerid, "240", ta.highest(high, past_hs))
+pastLow  = request.security(syminfo.tickerid, "240", ta.lowest(low, past_hs))
+
+// === 条件：4時間足の高値が過去高値を超えたら、安値が割れたら
+isHighBreak = hHigh > pastHigh[1]
+isLowBreak  = hLow < pastLow[1]
+
+// === ライン管理 (破棄 -> 更新)
+var line highLine = na
+var line lowLine  = na
+
+if isHighBreak
+    if not na(highLine)
+        line.delete(highLine)
+    highLine := line.new(x1 = bar_index, y1 = hHigh,x2 = bar_index + 1, y2 = hHigh,color = color.green, extend = extend.right)
+
+if isLowBreak
+    if not na(lowLine)
+        line.delete(lowLine)
+    lowLine := line.new(x1 = bar_index, y1 = hLow,x2 = bar_index + 1, y2 = hLow,color = color.red, extend = extend.right)

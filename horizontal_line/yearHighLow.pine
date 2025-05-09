@@ -1,11 +1,3 @@
-# ===================================
-#
-#
-#
-
-
-# 以下をコピペ
-
 //@version=5
 indicator("Yearly High/Low Breakout Lines", overlay=true)
 
