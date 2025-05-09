@@ -1,0 +1,40 @@
+# ===================================
+#
+#
+#
+
+
+# 以下をコピペ
+
+//@version=5
+indicator("Yearly High/Low Breakout Lines", overlay=true)
+
+// === パラメータ ===
+past_years = 5  // 過去何年と比較するか
+
+// === 年足データの取得 ===
+yearHigh = request.security(syminfo.tickerid, "12M", high)
+yearLow  = request.security(syminfo.tickerid, "12M", low)
+
+// === 年足の最高値・最安値（過去5本） ===
+pastHigh = request.security(syminfo.tickerid, "12M", ta.highest(high, past_years))
+pastLow  = request.security(syminfo.tickerid, "12M", ta.lowest(low, past_years))
+
+// === 条件：今年の高値 or 安値が過去5年を更新したらラインを引く ===
+isHighBreak = yearHigh > pastHigh[1]
+isLowBreak  = yearLow < pastLow[1]
+
+// === ライン管理（破棄→更新） ===
+var line highLine = na
+var line lowLine  = na
+
+
+if isHighBreak
+    if not na(highLine)
+        line.delete(highLine)
+    highLine := line.new(x1=bar_index, y1=yearHigh, x2=bar_index + 1, y2=yearHigh, color=color.red, extend=extend.right)
+
+if isLowBreak
+    if not na(lowLine)
+        line.delete(lowLine)
+    lowLine := line.new(x1=bar_index, y1=yearLow, x2=bar_index + 1, y2=yearLow, color=color.green, extend=extend.right)

@@ -14,6 +14,35 @@
 ## 目的：
 - 毎回手作業で"トレンドライン・水平線"を引くことが面倒だったのでそれを自動化している。
 
+## コード説明　：
+### yearHighLow.pine :
+<table>
+<tr>
+<th>処理</th><th>内容</th>
+</tr>
+<tr>
+<th>request.security(..., "12M", high)</th><th>現在の年足の高値を取得</th>
+</tr>
+<tr>
+<th>request.security(..., "12M", low)</th><th>現在の年足の安値を取得</th>
+</tr>
+<tr>
+<th>ta.highest(..., 5)</th><th>過去5年の最高値を取得</th>
+</tr>
+<tr>
+<th>ta.lowest(..., 5)</th><th>過去5年の最安値を取得</th>
+</tr>
+<tr>
+<th>if 現在の年 > 過去最高なら</th><th>水平線を引く</th>
+</tr>
+<tr>
+<th>if 現在の年 < 過去最低なら</th><th>水平線を引く</th>
+</tr>
+<tr>
+<th>line.new(...)</th><th>水平線を右方向に引く</th>
+</tr>
+</table>
+
 ## 使い方：
 - Copy and Paste で Pine エディタに貼り付けて実行<br>
 ※ TradingView に GitHub の連携 API が存在しない為。
