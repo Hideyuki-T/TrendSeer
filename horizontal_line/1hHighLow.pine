@@ -1,17 +1,17 @@
 //@version=5
-indicator("240 High/Low Breakout Lines", overlay=true)
+indicator("60 High/Low Breakout Lines", overlay=true)
 
 // === パラメーター ===
-past_high = 5
-past_low = 5
+past_high = 50
+past_low = 20
 
 // === 4時間足データ取得 ===
-hHigh = request.security(syminfo.tickerid, "240", high)
-hLow  = request.security(syminfo.tickerid, "240", low)
+hHigh = request.security(syminfo.tickerid, "60", high)
+hLow  = request.security(syminfo.tickerid, "60", low)
 
 // === 4時間足の最安値・最高値 (過去5本分) ===
-pastHigh = request.security(syminfo.tickerid, "240", ta.highest(high, past_high))
-pastLow  = request.security(syminfo.tickerid, "240", ta.lowest(low, past_low))
+pastHigh = request.security(syminfo.tickerid, "60", ta.highest(high, past_high))
+pastLow  = request.security(syminfo.tickerid, "60", ta.lowest(low, past_low))
 
 // === 条件：4時間足の高値が過去高値を超えたら、安値が割れたら
 isHighBreak = hHigh > pastHigh[1]

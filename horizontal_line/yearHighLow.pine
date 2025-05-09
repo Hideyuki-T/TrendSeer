@@ -2,15 +2,16 @@
 indicator("Yearly High/Low Breakout Lines", overlay=true)
 
 // === パラメータ ===
-past_years = 5  // 過去何年と比較するか
+past_high = 5
+past_low = 5
 
 // === 年足データの取得 ===
 yearHigh = request.security(syminfo.tickerid, "12M", high)
 yearLow  = request.security(syminfo.tickerid, "12M", low)
 
 // === 年足の最高値・最安値（過去5本） ===
-pastHigh = request.security(syminfo.tickerid, "12M", ta.highest(high, past_years))
-pastLow  = request.security(syminfo.tickerid, "12M", ta.lowest(low, past_years))
+pastHigh = request.security(syminfo.tickerid, "12M", ta.highest(high, past_high))
+pastLow  = request.security(syminfo.tickerid, "12M", ta.lowest(low, past_low))
 
 // === 条件：今年の高値 or 安値が過去5年を更新したらラインを引く ===
 isHighBreak = yearHigh > pastHigh[1]
