@@ -1,0 +1,33 @@
+//@version=5
+indicator("15min High/Low Breakout Lines", overlay=true)
+
+// === パラメーター ===
+past_high = 30
+past_low = 5
+
+// === 15分足データ取得 ===
+hHigh = request.security(syminfo.tickerid, "15", high)
+hLow  = request.security(syminfo.tickerid, "15", low)
+
+// === 15分足の最安値・最高値 (過去N本分) ===
+pastHigh = request.security(syminfo.tickerid, "15", ta.highest(high, past_high))
+pastLow  = request.security(syminfo.tickerid, "15", ta.lowest(low, past_low))
+
+// === 条件：高値が過去高値を超えたら / 安値が過去安値を割ったら
+isHighBreak = hHigh > pastHigh[1]
+isLowBreak  = hLow < pastLow[1]
+
+// === ライン管理 (破棄 → 再描画) ===
+var line highLine = na
+var line lowLine  = na
+
+if isHighBreak
+    if not na(highLine)
+        line.delete(highLine)
+    highLine := line.new(x1 = bar_index, y1 = hHigh,x2 = bar_index + 1, y2 = hHigh,color = color.green, extend = extend.right)
+
+if isLowBreak
+    if not na(lowLine)
+        line.delete(lowLine)
+    lowLine := line.new(x1 = bar_index, y1 = hLow,x2 = bar_index + 1, y2 = hLow,color = color.red, extend = extend.right)
+
