@@ -1,0 +1,32 @@
+//@version=5
+indicator("Weekly High/Low Breakout Lines", overlay=true)
+
+// === パラメーター ===
+past_high = 5  // 過去5週の高値を見る
+past_low  = 5  // 過去5週の安値を見る
+
+// === 週足データ取得 ===
+weekHigh = request.security(syminfo.tickerid, "1W", high)
+weekLow  = request.security(syminfo.tickerid, "1W", low)
+
+// === 過去週の最高値・最安値
+pastHigh = request.security(syminfo.tickerid, "1W", ta.highest(high, past_high))
+pastLow  = request.security(syminfo.tickerid, "1W", ta.lowest(low, past_low))
+
+// === ブレイク判定
+isHighBreak = weekHigh > pastHigh[1]
+isLowBreak  = weekLow < pastLow[1]
+
+// === ライン描画（常に1本ずつのみ）
+var line highLine = na
+var line lowLine  = na
+
+if isHighBreak
+    if not na(highLine)
+        line.delete(highLine)
+    highLine := line.new(x1=bar_index, y1=weekHigh, x2=bar_index + 1, y2=weekHigh, color=color.green, extend=extend.right)
+
+if isLowBreak
+    if not na(lowLine)
+        line.delete(lowLine)
+    lowLine := line.new(x1=bar_index, y1=weekLow, x2=bar_index + 1, y2=weekLow, color=color.red, extend=extend.right)

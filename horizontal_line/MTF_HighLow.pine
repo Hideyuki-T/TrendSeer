@@ -2,144 +2,198 @@
 indicator("Selectable Multi-TF High/Low Lines (Origin Bars)", overlay=true, dynamic_requests=true)
 
 // === 表示ON/OFF トグル ===
-show_12M = input.bool(false,  "12 Months")
-show_1M  = input.bool(false,  "1 Month")
-show_1D  = input.bool(false,  "1 Day")
-show_4H  = input.bool(false, "4 Hours")
-show_1H  = input.bool(false, "1 Hour")
-show_15m = input.bool(false, "15 Minutes")
-show_5m  = input.bool(false, "5 Minutes")
-show_1m  = input.bool(true,  "1 Minute")
+show_12M = input.bool(false, "12 Months",  group="表示トグル")
+show_1M  = input.bool(false, "1 Month",    group="表示トグル")
+show_1W  = input.bool(false, "1 Week",     group="表示トグル")
+show_1D  = input.bool(false, "1 Day",      group="表示トグル")
+show_4H  = input.bool(false, "4 Hours",    group="表示トグル")
+show_1H  = input.bool(false, "1 Hour",     group="表示トグル")
+show_15m = input.bool(false, "15 Minutes", group="表示トグル")
+show_5m  = input.bool(false, "5 Minutes",  group="表示トグル")
+show_1m  = input.bool(true,  "1 Minute",   group="表示トグル")
 
-// === 各時間足に対する高値・安値の「過去バー数」設定 ===
-past_high_12M = input.int(20, title="12M: Past High Bars")
-past_low_12M  = input.int(20, title="12M: Past Low Bars")
-past_high_1M  = input.int(20, title="1M: Past High Bars")
-past_low_1M   = input.int(20, title="1M: Past Low Bars")
-past_high_1D  = input.int(20, title="1D: Past High Bars")
-past_low_1D   = input.int(20, title="1D: Past Low Bars")
-past_high_4H  = input.int(20, title="4H: Past High Bars")
-past_low_4H   = input.int(20, title="4H: Past Low Bars")
-past_high_1H  = input.int(20, title="1H: Past High Bars")
-past_low_1H   = input.int(20, title="1H: Past Low Bars")
-past_high_15m = input.int(20, title="15m: Past High Bars")
-past_low_15m  = input.int(20, title="15m: Past Low Bars")
-past_high_5m  = input.int(20, title="5m: Past High Bars")
-past_low_5m   = input.int(20, title="5m: Past Low Bars")
-past_high_1m  = input.int(20, title="1m: Past High Bars")
-past_low_1m   = input.int(20, title="1m: Past Low Bars")
+// === 過去バー数設定 ===
+ph12 = input.int(20, "12M: Past High Bars", group="過去バー数")
+pl12 = input.int(20, "12M: Past Low Bars",  group="過去バー数")
+ph1M = input.int(20, "1M: Past High Bars",  group="過去バー数")
+pl1M = input.int(20, "1M: Past Low Bars",   group="過去バー数")
+ph1W = input.int(20, "1W: Past High Bars",  group="過去バー数")
+pl1W = input.int(20, "1W: Past Low Bars",   group="過去バー数")
+ph1D = input.int(20, "1D: Past High Bars",  group="過去バー数")
+pl1D = input.int(20, "1D: Past Low Bars",   group="過去バー数")
+ph4H = input.int(20, "4H: Past High Bars",  group="過去バー数")
+pl4H = input.int(20, "4H: Past Low Bars",   group="過去バー数")
+ph1H = input.int(20, "1H: Past High Bars",  group="過去バー数")
+pl1H = input.int(20, "1H: Past Low Bars",   group="過去バー数")
+ph15 = input.int(20, "15m: Past High Bars", group="過去バー数")
+pl15 = input.int(20, "15m: Past Low Bars",  group="過去バー数")
+ph5  = input.int(20, "5m: Past High Bars",  group="過去バー数")
+pl5  = input.int(20, "5m: Past Low Bars",   group="過去バー数")
+ph1  = input.int(20, "1m: Past High Bars",  group="過去バー数")
+pl1  = input.int(20, "1m: Past Low Bars",   group="過去バー数")
 
-// === 設定管理配列（時間足、トグル、カラー）===
-var string[] timeframes = array.new_string()
-var bool[] toggles      = array.new_bool()
-var color[] colors      = array.new_color()
+// === ライン保持用 ===
+var line h12  = na
+var line l12  = na
+var line h1M  = na
+var line l1M  = na
+var line h1W  = na
+var line l1W  = na
+var line h1D  = na
+var line l1D  = na
+var line h4H  = na
+var line l4H  = na
+var line h1H  = na
+var line l1H  = na
+var line h15  = na
+var line l15  = na
+var line h5   = na
+var line l5   = na
+var line h1   = na
+var line l1   = na
 
-// === 各時間足に対して1本ずつラインを保持する配列 ===
-var line[] highLines = array.new_line()
-var line[] lowLines  = array.new_line()
+// === 多時間足処理 ===
+// 12M
+if show_12M
+    hv = request.security(syminfo.tickerid, "12M", ta.highest(high, ph12))
+    lv = request.security(syminfo.tickerid, "12M", ta.lowest(low,  pl12))
+    hb = request.security(syminfo.tickerid, "12M", ta.highestbars(high, ph12))
+    lb = request.security(syminfo.tickerid, "12M", ta.lowestbars(low,  pl12))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph12 + hb
+        xl = bar_index - pl12 + lb
+        if not na(h12)
+            line.delete(h12)
+        if not na(l12)
+            line.delete(l12)
+        h12 := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.red, width=1, extend=extend.right)
+        l12 := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.red, width=1, extend=extend.right)
 
-// === 初期化：1度だけ配列に詰める ===
-if bar_index == 0
-    array.push(timeframes, "12M")
-    array.push(timeframes, "1M")
-    array.push(timeframes, "1D")
-    array.push(timeframes, "240")
-    array.push(timeframes, "60")
-    array.push(timeframes, "15")
-    array.push(timeframes, "5")
-    array.push(timeframes, "1")
+// 1M
+if show_1M
+    hv = request.security(syminfo.tickerid, "1M", ta.highest(high, ph1M))
+    lv = request.security(syminfo.tickerid, "1M", ta.lowest(low,  pl1M))
+    hb = request.security(syminfo.tickerid, "1M", ta.highestbars(high, ph1M))
+    lb = request.security(syminfo.tickerid, "1M", ta.lowestbars(low,  pl1M))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph1M + hb
+        xl = bar_index - pl1M + lb
+        if not na(h1M)
+            line.delete(h1M)
+        if not na(l1M)
+            line.delete(l1M)
+        h1M := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.orange, width=1, extend=extend.right)
+        l1M := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.orange, width=1, extend=extend.right)
 
-    array.push(toggles, show_12M)
-    array.push(toggles, show_1M)
-    array.push(toggles, show_1D)
-    array.push(toggles, show_4H)
-    array.push(toggles, show_1H)
-    array.push(toggles, show_15m)
-    array.push(toggles, show_5m)
-    array.push(toggles, show_1m)
+// 1W
+if show_1W
+    hv = request.security(syminfo.tickerid, "1W", ta.highest(high, ph1W))
+    lv = request.security(syminfo.tickerid, "1W", ta.lowest(low,  pl1W))
+    hb = request.security(syminfo.tickerid, "1W", ta.highestbars(high, ph1W))
+    lb = request.security(syminfo.tickerid, "1W", ta.lowestbars(low,  pl1W))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph1W + hb
+        xl = bar_index - pl1W + lb
+        if not na(h1W)
+            line.delete(h1W)
+        if not na(l1W)
+            line.delete(l1W)
+        h1W := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.teal, width=1, extend=extend.right)
+        l1W := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.teal, width=1, extend=extend.right)
 
-    array.push(colors, color.red)
-    array.push(colors, color.orange)
-    array.push(colors, color.green)
-    array.push(colors, color.blue)
-    array.push(colors, color.navy)
-    array.push(colors, color.purple)
-    array.push(colors, color.gray)
-    array.push(colors, color.black)
+// 1D
+if show_1D
+    hv = request.security(syminfo.tickerid, "1D", ta.highest(high, ph1D))
+    lv = request.security(syminfo.tickerid, "1D", ta.lowest(low,  pl1D))
+    hb = request.security(syminfo.tickerid, "1D", ta.highestbars(high, ph1D))
+    lb = request.security(syminfo.tickerid, "1D", ta.lowestbars(low,  pl1D))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph1D + hb
+        xl = bar_index - pl1D + lb
+        if not na(h1D)
+            line.delete(h1D)
+        if not na(l1D)
+            line.delete(l1D)
+        h1D := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.green, width=1, extend=extend.right)
+        l1D := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.green, width=1, extend=extend.right)
 
-    // ライン配列を初期化（各時間足で1本ずつ）
-    for _ = 0 to 7
-        array.push(highLines, na)
-        array.push(lowLines, na)
+// 4H (240)
+if show_4H
+    hv = request.security(syminfo.tickerid, "240", ta.highest(high, ph4H))
+    lv = request.security(syminfo.tickerid, "240", ta.lowest(low,  pl4H))
+    hb = request.security(syminfo.tickerid, "240", ta.highestbars(high, ph4H))
+    lb = request.security(syminfo.tickerid, "240", ta.lowestbars(low,  pl4H))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph4H + hb
+        xl = bar_index - pl4H + lb
+        if not na(h4H)
+            line.delete(h4H)
+        if not na(l4H)
+            line.delete(l4H)
+        h4H := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.blue, width=1, extend=extend.right)
+        l4H := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.blue, width=1, extend=extend.right)
 
-// === メイン描画ループ ===
-for i = 0 to array.size(timeframes) - 1
-    tf   = array.get(timeframes, i)
-    show = array.get(toggles, i)
-    col  = array.get(colors, i)
+// 1H (60)
+if show_1H
+    hv = request.security(syminfo.tickerid, "60", ta.highest(high, ph1H))
+    lv = request.security(syminfo.tickerid, "60", ta.lowest(low,  pl1H))
+    hb = request.security(syminfo.tickerid, "60", ta.highestbars(high, ph1H))
+    lb = request.security(syminfo.tickerid, "60", ta.lowestbars(low,  pl1H))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph1H + hb
+        xl = bar_index - pl1H + lb
+        if not na(h1H)
+            line.delete(h1H)
+        if not na(l1H)
+            line.delete(l1H)
+        h1H := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.navy, width=1, extend=extend.right)
+        l1H := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.navy, width=1, extend=extend.right)
 
-    float hVal = na
-    float lVal = na
-    int   hBar = na
-    int   lBar = na
 
-    if tf == "12M"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_12M))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_12M))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_12M))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_12M))
-    else if tf == "1M"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_1M))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_1M))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_1M))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_1M))
-    else if tf == "1D"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_1D))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_1D))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_1D))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_1D))
-    else if tf == "240"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_4H))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_4H))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_4H))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_4H))
-    else if tf == "60"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_1H))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_1H))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_1H))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_1H))
-    else if tf == "15"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_15m))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_15m))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_15m))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_15m))
-    else if tf == "5"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_5m))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_5m))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_5m))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_5m))
-    else if tf == "1"
-        hVal := request.security(syminfo.tickerid, tf, ta.highest(high, past_high_1m))
-        hBar := request.security(syminfo.tickerid, tf, ta.highestbars(high, past_high_1m))
-        lVal := request.security(syminfo.tickerid, tf, ta.lowest(low, past_low_1m))
-        lBar := request.security(syminfo.tickerid, tf, ta.lowestbars(low, past_low_1m))
+// 15m
+if show_15m
+    hv = request.security(syminfo.tickerid, "15", ta.highest(high, ph15))
+    lv = request.security(syminfo.tickerid, "15", ta.lowest(low,  pl15))
+    hb = request.security(syminfo.tickerid, "15", ta.highestbars(high, ph15))
+    lb = request.security(syminfo.tickerid, "15", ta.lowestbars(low,  pl15))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph15 + hb
+        xl = bar_index - pl15 + lb
+        if not na(h15)
+            line.delete(h15)
+        if not na(l15)
+            line.delete(l15)
+        h15 := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.purple, width=1, extend=extend.right)
+        l15 := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.purple, width=1, extend=extend.right)
 
-    if show and not na(hVal) and not na(hBar) and not na(lVal) and not na(lBar)
-        // 起点のx座標（現在バーから何本前か）
-        xHigh = bar_index - past_high_1m + hBar
-        xLow  = bar_index - past_low_1m + lBar
+// 5m
+if show_5m
+    hv = request.security(syminfo.tickerid, "5", ta.highest(high, ph5))
+    lv = request.security(syminfo.tickerid, "5", ta.lowest(low,  pl5))
+    hb = request.security(syminfo.tickerid, "5", ta.highestbars(high, ph5))
+    lb = request.security(syminfo.tickerid, "5", ta.lowestbars(low,  pl5))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph5 + hb
+        xl = bar_index - pl5 + lb
+        if not na(h5)
+            line.delete(h5)
+        if not na(l5)
+            line.delete(l5)
+        h5 := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.gray, width=1, extend=extend.right)
+        l5 := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.gray, width=1, extend=extend.right)
 
-        // 古いラインを削除
-        prevHigh = array.get(highLines, i)
-        prevLow  = array.get(lowLines, i)
-        if not na(prevHigh)
-            line.delete(prevHigh)
-        if not na(prevLow)
-            line.delete(prevLow)
-
-        // 新規ラインを描画
-        newHigh = line.new(x1=xHigh, y1=hVal, x2=xHigh + 1, y2=hVal, color=col, width=1, extend=extend.right)
-        newLow  = line.new(x1=xLow,  y1=lVal,  x2=xLow + 1,  y2=lVal,  color=col, width=1, extend=extend.right)
-
-        array.set(highLines, i, newHigh)
-        array.set(lowLines, i, newLow)
+// 1m
+if show_1m
+    hv = request.security(syminfo.tickerid, "1", ta.highest(high, ph1))
+    lv = request.security(syminfo.tickerid, "1", ta.lowest(low,  pl1))
+    hb = request.security(syminfo.tickerid, "1", ta.highestbars(high, ph1))
+    lb = request.security(syminfo.tickerid, "1", ta.lowestbars(low,  pl1))
+    if not na(hv) and not na(lv)
+        xh = bar_index - ph1 + hb
+        xl = bar_index - pl1 + lb
+        if not na(h1)
+            line.delete(h1)
+        if not na(l1)
+            line.delete(l1)
+        h1 := line.new(x1=xh, y1=hv, x2=xh+1, y2=hv, color=color.black, width=1, extend=extend.right)
+        l1 := line.new(x1=xl, y1=lv, x2=xl+1, y2=lv, color=color.black, width=1, extend=extend.right)
