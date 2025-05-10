@@ -1,8 +1,8 @@
-## 名称：TrendSeer
+# 名称：TrendSeer 🕊
 
 ## 🧰 技術スタック / Tech Stack
 #### 言語・IDE
-![Pine Script](https://img.shields.io/badge/Pine%20Script-v5-green?logo=tradingview&style=for-the-badge)
+![Pine Script](https://img.shields.io/badge/TradingView-Pine%20Script%20v5-blue?logo=tradingview&style=for-the-badge)
 ![PhpStorm](https://img.shields.io/badge/PhpStorm-143?style=flat&logo=phpstorm&logoColor=white)
 #### パッケージ・バージョン管理
 ![Git](https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white)
